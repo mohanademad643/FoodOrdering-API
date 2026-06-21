@@ -72,13 +72,14 @@ namespace FoodOrdering.API.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
             [FromQuery] string? searchTerm = null,
+            [FromQuery] int? Rating = null,
             [FromQuery] string? sortOrder = "asc",    
             [FromQuery] decimal? minPrice = null,      
             [FromQuery] decimal? maxPrice = null)    
             
         {
             var result = await Mediator.Send(
-                new GetAllProductsQuery(categoryId, availableOnly, page, pageSize, searchTerm, sortOrder,minPrice,maxPrice));
+                new GetAllProductsQuery(categoryId, availableOnly, page, pageSize, searchTerm, Rating, sortOrder,minPrice,maxPrice));
             return StatusCode(result.StatusCode, result);
         }
 

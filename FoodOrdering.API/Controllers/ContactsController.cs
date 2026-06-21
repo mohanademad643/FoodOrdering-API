@@ -24,11 +24,16 @@ namespace FoodOrdering.API.Controllers
         public async Task<IActionResult> GetAll(
             [FromQuery] bool? isRead = null,
             [FromQuery] bool? isReplied = null,
+             [FromQuery] DateOnly? StartDate = null,
+             [FromQuery] DateOnly? EndDate = null,
+               [FromQuery] string? Email = null,
+              [FromQuery] string? FullNameSearchTerm = null,
+             [FromQuery] string? MessageContent = null,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20)
         {
             var result = await Mediator.Send(
-                new GetAllContactsQuery(isRead, isReplied, page, pageSize));
+                new GetAllContactsQuery(isRead, isReplied, StartDate, EndDate, Email, FullNameSearchTerm, MessageContent, page, pageSize));
             return StatusCode(result.StatusCode, result);
         }
 

@@ -64,16 +64,26 @@ namespace FoodOrdering.API.Controllers
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
             [FromQuery] int? rating = null,
-            [FromQuery] DateTime? StartDate = null,
-            [FromQuery] DateTime? EndDate = null
+            [FromQuery] string? productSearchTerm = null,
+            [FromQuery] string? fullNameSearchTerm = null,
+            [FromQuery] DateOnly? startDate = null,
+            [FromQuery] DateOnly? endDate = null
             )
         {
             var result = await Mediator.Send(
-                new GetAllReviewsQuery(isApproved, page, pageSize, rating,StartDate,EndDate));
+                new GetAllReviewsQuery(
+                    isApproved,
+                    page,
+                    pageSize,
+                    rating,
+                    productSearchTerm,
+                    fullNameSearchTerm,
+                    startDate,
+                    endDate));
             return StatusCode(result.StatusCode, result);
         }
 
-   
+
         [HttpPut("{id:guid}/approve")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(Guid id)

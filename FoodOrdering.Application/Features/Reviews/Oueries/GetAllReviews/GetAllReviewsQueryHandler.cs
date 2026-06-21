@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
+using FoodOrdering.Application.Common.Filtering;
+using FoodOrdering.Application.Common.Filtering.Rules;
 using FoodOrdering.Application.Common.Models;
 using FoodOrdering.Application.Features.Reviews.DTOs;
+using FoodOrdering.Domain.Entities;
 using FoodOrdering.Domain.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -28,34 +31,100 @@ namespace FoodOrdering.Application.Features.Reviews.Oueries.GetAllReviews
                 .Include(r => r.Product)
                 .AsQueryable();
 
-            if (request.IsApproved.HasValue)
-                query = query.Where(r => r.IsApproved == request.IsApproved.Value);
+            //if (request.IsApproved.HasValue)
+            //    query = query.Where(r => r.IsApproved == request.IsApproved.Value);
 
-            if (request.Rating.HasValue)
-                query = query.Where(r => r.Rating == request.Rating.Value);
+            //if (request.Rating.HasValue)
+            //    query = query.Where(r => r.Rating == request.Rating.Value);
 
-            if (request.StartDate.HasValue)
-                query = query.Where(r => r.CreatedAt >= request.StartDate.Value);
+            //if (!string.IsNullOrWhiteSpace(request.ProductSearchTerm))
+            //{
+            //    var productWords = request.ProductSearchTerm
+            //        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            //        .Select(w => w.ToLower());
+            //    query = query.Where(r => productWords.All(word =>
+            //        r.Product.NameAr.ToLower().Contains(word) ||
+            //        r.Product.NameEn.ToLower().Contains(word)));
+            //}
 
-            if (request.EndDate.HasValue)
-                query = query.Where(r => r.CreatedAt < request.EndDate.Value.Date.AddDays(1));
+            //if (!string.IsNullOrWhiteSpace(request.FullNameSearchTerm))
+            //{
+            //    var nameWords = request.FullNameSearchTerm
+            //        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            //        .Select(w => w.ToLower());
 
-         
-            var totalCount = await query.CountAsync(cancellationToken);
+            //    query = query.Where(r => nameWords.All(word =>
+            //        r.User.FirstName.ToLower().Contains(word) ||
+            //        r.User.LastName.ToLower().Contains(word)));
+            //}
 
-            var reviews = await query
-                .OrderByDescending(r => r.CreatedAt)
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToListAsync(cancellationToken);
+            //if (request.StartDate.HasValue)
+            //    {
+            //        var start = request.StartDate.Value.ToDateTime(TimeOnly.MinValue);
+            //        query = query.Where(r => r.CreatedAt >= start);
+            //    }
 
-            return ApiResponse<PagedResult<ReviewDto>>.Ok(new PagedResult<ReviewDto>
-            {
-                Items = _mapper.Map<IEnumerable<ReviewDto>>(reviews),
-                TotalCount = totalCount,
-                Page = request.Page,
-                PageSize = request.PageSize
-            });
+            //if (request.EndDate.HasValue)
+            //    {
+            //        var end = request.EndDate.Value.ToDateTime(TimeOnly.MinValue).AddDays(1);
+            //        query = query.Where(r => r.CreatedAt < end);
+            //    }
+
+
+            //var totalCount = await query.CountAsync(cancellationToken);
+
+            //var reviews = await query
+            //    .OrderByDescending(r => r.CreatedAt)
+            //    .Skip((request.Page - 1) * request.PageSize)
+            //    .Take(request.PageSize)
+            //    .ToListAsync(cancellationToken);
+            //return ApiResponse<PagedResult<ReviewDto>>.Ok(new PagedResult<ReviewDto>
+            //{
+            //    Items = _mapper.Map<IEnumerable<ReviewDto>>(reviews),
+            //    TotalCount = totalCount,
+            //    Page = request.Page,
+            //    PageSize = request.PageSize
+            //});
+            IFilterRule<Review>[] rules =
+          {
+                new BooleanFilterRule<Review>(
+                    r => r.IsApproved,
+                    request.IsApproved),
+
+                new EqualityFilterRule<Review, int>(
+                    r => r.Rating,
+                    request.Rating),
+
+                new DateRangeFilterRule<Review>(
+                    r => r.CreatedAt,
+                    request.StartDate,
+                    request.EndDate),
+
+                new KeywordSearchFilterRule<Review>(
+                    request.ProductSearchTerm,
+                    word => r => r.Product.NameAr.ToLower().Contains(word) ||
+                                 r.Product.NameEn.ToLower().Contains(word)),
+
+                new KeywordSearchFilterRule<Review>(
+                    request.FullNameSearchTerm,
+                    word => r => r.User.FirstName.ToLower().Contains(word) ||
+                                 r.User.LastName.ToLower().Contains(word)),
+            };
+
+            foreach (var rule in rules.Where(r => r.IsApplicable()))
+                query = rule.Apply(query);
+
+            var paged = await PaginationHelper.ToPagedResultAsync(
+               query,
+               request.Page,
+               request.PageSize,
+               entities => _mapper.Map<IEnumerable<ReviewDto>>(entities),
+               q => q.OrderByDescending(r => r.CreatedAt),
+               cancellationToken);
+
+            return ApiResponse<PagedResult<ReviewDto>>.Ok(paged);
+
+          
         }
     }
 }

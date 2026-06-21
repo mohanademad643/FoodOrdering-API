@@ -9,7 +9,9 @@ namespace FoodOrdering.Application.Features.Reviews.Oueries.GetAllReviews
        int Page = 1,
        int PageSize = 20,
        int? Rating = null,
-       DateTime? StartDate = null,
-       DateTime? EndDate = null
+       string? ProductSearchTerm = null,
+       string? FullNameSearchTerm = null,
+       DateOnly? StartDate = null,
+       DateOnly? EndDate = null
    ) : IRequest<ApiResponse<PagedResult<ReviewDto>>>;
 }
