@@ -102,5 +102,6 @@ FoodOrderingSolution/
 
 **Mohannad Emad** - Senior Software Developer (Angular and .NET Core)
 
-- LinkedIn: <add-your-link>
-- Email: <add-your-email>
+- LinkedIn: https://www.linkedin.com/in/mohannad-emad-eldin-ramadan-499141263/
+- Email: mohannad.emad535@gmail.com
+- Phone: 01144244060
